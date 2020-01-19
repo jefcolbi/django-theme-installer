@@ -1,0 +1,4 @@
+*.pyc
+*.wpr
+*.wpu
+*__pycache__*
