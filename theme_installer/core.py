@@ -1,7 +1,6 @@
 from pathlib import Path
-from constants import *
+from theme_installer.constants import *
 import re
-from pprint import pprint
 import shutil
 import logging
 
@@ -9,6 +8,16 @@ logger = logging.getLogger('ThemeInstaller')
 
 
 class ThemeInstaller:
+    """
+    This is the core class responsible of the installation of the theme
+    
+    :param str name: The name of the theme
+    :param str from_dir: The path of the HTML theme
+    :param str static_dir: the path to the static dir of the django project
+    :param str templates_dir: The path to the templates dir of the django project.
+    :param bool sub_theme: Whether or not this theme is a sub theme
+    :param str parent: if this theme is a sub-theme his parent should be specified
+    """
     
     rgx_html = re.compile(r"\.html?$")
     rgx_repl_format = r'\1="/static/{}/\2'
@@ -18,6 +27,9 @@ class ThemeInstaller:
                  sub_theme=False, parent=None):
         self.static_dir = Path(static_dir)
         self.from_dir = Path(from_dir)
+        if not self.from_dir.exists():
+            raise FileExistsError("The source path doesn't exist!")
+        
         self.templates_dir = Path(templates_dir)
         self.name = name
         self.sub_theme = sub_theme
@@ -47,6 +59,9 @@ class ThemeInstaller:
         self.sub_dirs = []
                 
     def load_from_dir(self):
+        """
+        Load all html files, assets and sub-themes from the source dir
+        """
         for p in self.from_dir.iterdir():
             if p.is_dir() and p.name in ASSETS_NAMES:
                 self.asset_dirs.append(p)
@@ -57,6 +72,9 @@ class ThemeInstaller:
                 
         
     def copy_html(self):
+        """
+        Copy the html files in the templates dir
+        """
         dest_dir:Path = self.templates_dir.joinpath(self.name)
         try:
             dest_dir.mkdir()
@@ -77,6 +95,9 @@ class ThemeInstaller:
                     break
                 
     def copy_static(self):
+        """
+        Copy the assets to the static dir
+        """
         dest_dir = self.static_dir.joinpath(self.name)
         if dest_dir.exists():
             shutil.rmtree(dest_dir)
@@ -88,6 +109,9 @@ class ThemeInstaller:
             shutil.copytree(f, sta_dir)
             
     def replace_static_html(self):
+        """
+        Fix asset paths to the static dir
+        """
         for f in self.asset_dirs:
             for p in self.templates_dir.joinpath(self.name).iterdir():
                 if p.is_dir():
@@ -107,6 +131,9 @@ class ThemeInstaller:
             open(source, "w").write(mod_code)
             
     def install_sub_themes(self):
+        """
+        Install all sub-themes.
+        """
         for sub in self.sub_dirs:
             name = sub.name
             base = str(sub)
@@ -114,10 +141,12 @@ class ThemeInstaller:
             template = str(self.templates_dir.joinpath(self.name))
             sub_th = ThemeInstaller(name, base, static, template,
                                     sub_theme=True, parent=self.name)
-            print(name, base, static, template)
             sub_th.proceed()
             
     def proceed(self):
+        """
+        Method to do all the stuffs at once.
+        """
         logger.info("Loading required files from directory...")
         self.load_from_dir()
         logger.info("Loading done.")
@@ -140,7 +169,7 @@ class ThemeInstaller:
         
         
 if __name__ == "__main__":
-    th = ThemeInstaller('aicsa', '/home/jefcolbi/Themes/armahtml-10/Arma-maindownlod-1.0/html/',
-                        '/home/jefcolbi/Projets/themes/src/themes/base/static',
-                        '/home/jefcolbi/Projets/themes/src/themes/templates')
+    th = ThemeInstaller('foo', '/home/blabla/themes/foo/html/',
+                        '/home/blabla/project/django/themes/base/static',
+                        '/home/blabla/project/django/themes/templates')
     th.proceed()
