@@ -18,7 +18,7 @@ URL = 'https://github.com/jefcolbi/django-theme-installer'
 EMAIL = 'jefcolbi@mboatek.com'
 AUTHOR = 'jefcolbi'
 REQUIRES_PYTHON = '>=3.5'
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 # What packages are required for this module to be executed?
 REQUIRED = [

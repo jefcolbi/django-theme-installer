@@ -24,7 +24,7 @@ class ThemeInstaller:
     rgx_find_format = r'(src|href)="({})'
     
     def __init__(self, name, from_dir, static_dir, templates_dir, 
-                 sub_theme=False, parent=None):
+                 sub_theme=False, parent=None, prefix=None):
         self.static_dir = Path(static_dir)
         self.from_dir = Path(from_dir)
         if not self.from_dir.exists():
@@ -34,6 +34,8 @@ class ThemeInstaller:
         self.name = name
         self.sub_theme = sub_theme
         self.parent_name = parent if parent else ''
+        if prefix:
+            self.rgx_repl_format = r'\1="/%s/{}/\2' % prefix
         
         if not self.static_dir.exists():
             if self.sub_theme:
@@ -169,7 +171,7 @@ class ThemeInstaller:
         
         
 if __name__ == "__main__":
-    th = ThemeInstaller('foo', '/home/blabla/themes/foo/html/',
-                        '/home/blabla/project/django/themes/base/static',
-                        '/home/blabla/project/django/themes/templates')
+    th = ThemeInstaller('dashboard', '/home/jefcolbi/Themes/Admin/elmerhtml/elmerhtml/elmer_themeforest/html/',
+                        '/home/jefcolbi/Projets/MboateK/tambeh/src/tambeh/base/static/',
+                        '/home/jefcolbi/Projets/MboateK/tambeh/src/tambeh/templates/')
     th.proceed()

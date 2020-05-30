@@ -17,6 +17,8 @@ parser.add_argument('-t', '--templates', help='The destination directory '
                     'of the templates')
 parser.add_argument('-c', '--static', help="The destination directory "
                     "of the static files")
+parser.add_argument('-p', '--prefix', help="The prefix of the static links "
+                    "in template. Default /static/")
 
 args = parser.parse_args()
 
@@ -25,7 +27,8 @@ if not(args.name and args.source and args.static and args.templates):
     import os
     os._exit(0)
 
-ti = ThemeInstaller(args.name, args.source, args.static, args.templates)
+ti = ThemeInstaller(args.name, args.source, args.static, args.templates, 
+                    prefix=args.prefix)
 ti.proceed()
 
 print("Installation done!")
