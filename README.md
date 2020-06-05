@@ -8,6 +8,11 @@ Django Theme Installer do this work for you.
     $ pip install django-theme-installer
     
 ### Usage
+##### Via django management command
+Add 'theme_installer' in INSTALLED_APPS  
+Then run 
+
+    $ python manage.py theme_install theme_name /path/where/the/html/files/are/located
 ##### Via the client
     $ theme_cl.py -n name -s /path/to/html/source/ -c /path/to/djangoproject/static/ -t /path/to/djangoproject/templates/
     
