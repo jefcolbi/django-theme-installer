@@ -182,21 +182,33 @@ class ThemeInstaller:
             
             for couple in res:
                 html_path = couple[1]
-                # find the keys which contains the html path
-                pot_keys = [key for key in urls_keys if html_path in key]
+                cur_parent_p = p.parent
                 
-                for key in pot_keys:
-                    # find a perfect match between the potential keys
-                    if key == "{}/{}".format(sub_dir, html_path):
-                        values = urls.get(key)
-                        break
-                else: 
-                    continue                    
+                # if the path is a back reference search the parent
+                while '../' in html_path:
+                    cur_parent_p = cur_parent_p.parent
+                    html_path = html_path[3:]
+                    
+                # if the html_path start with / then the cur_parent should be 
+                # the templates dir + name
+                if html_path.startswith('/'):
+                    cur_parent_p = self.templates_dir.joinpath(self.name)
+                    html_path = html_path[1:]
                 
-                url_arg = "{}:{}".format(self.name, values[2])                
-                new_url = "{% url '"+url_arg+"' %}"                
-                sr_code = sr_code.replace(couple[0]+html_path, couple[0]+new_url)
+                final_p:Path = cur_parent_p.joinpath(html_path)
+                if not final_p.exists():
+                    logger.warn("Template {} doesn't exist".format(final_p))
+                    continue
+                    
+                # the html path should be relative to the template dir of the app
+                html_path = str(final_p.relative_to(self.templates_dir.joinpath(self.name)))
                 
+                url_path = get_url_path_from_html_name(self.name, html_path)
+                url_name = url_path.replace('/', '_').replace('-', '_')
+                
+                url_arg = "{}:{}".format(self.name, url_name)                
+                new_url = "{% url '"+url_arg+"' %}"
+                sr_code = sr_code.replace(couple[0]+couple[1], couple[0]+new_url)
                 
             open(p, "w").write(sr_code)
             
@@ -313,7 +325,7 @@ from .views import *
 from django.urls import path, re_path
 
 urlpatterns = [
-    {% if has_index %}path('', IndexView.as_view(), 'index0'),{% endif %}
+    {% if has_index %}path('', IndexView.as_view(), name='index0'),{% endif %}
     {% for html_path, values in datas.items %}path('{{ values.0 }}/', {{ values.1 }}View.as_view(), name="{{ values.2 }}"),    
     {% endfor %}
     re_path(r'(?P<page>[a-z0-a\-/]+\.html?)$', DefaultHandlerView.as_view(), name="defaut_handler"),
@@ -351,7 +363,7 @@ class UrlInstaller:
             res[html_path] = (url_path, view_name, url_name)
             
         tpl = Template(url_tpl)
-        has_index = True if 'Index' in self.views else False
+        has_index = True if 'Index' in self.views.values() else False
         url_content = tpl.render(Context({'datas':res, 'has_index':has_index}))
         
         if self.home_dir:

@@ -13,7 +13,10 @@ def get_view_name_from_html_name(app:str, html_name:str) -> str:
     res = rgx_bad_start.search(view_name)
     if res:
         bad = res.group(1)
-        view_name = view_name.replace(bad, '', 1)+bad
+        view_name = view_name.replace(bad, '', 1)
+        if not view_name:
+            view_name = 'custom'
+        view_name += bad
         
     return view_name
 
